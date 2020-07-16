@@ -1,12 +1,23 @@
 #!/bin/bash
 
+BUILD_CROSS_COMPILE=/home/mentalmuso/kernel/toolchain/4.9/bin/aarch64-linux-android-
+KERNEL_LLVM_BIN=/home/mentalmuso/kernel/toolchain/clang/bin/clang
+CLANG_TRIPLE=aarch64-linux-gnu-
+KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
+KERN=/home/mentalmuso/kernel/android_kernel_samsung_sd855x
+TODAY=`date +%Y-%m-%d.%H:%M`
+WETA=$KERN/WETA
+AKOLDZIP=$WETA/weta_anykernel/WETA_Kernel_*
+AKOLDIMG=$WETA/weta_anykernel/zImage
+TWRP=/home/mentalmuso/TWRP
+
 ### make clean
 echo ""
 echo "Clean the toilet?? "
 echo "y or n "
 read cleantoilet
 if [ "$cleantoilet" != "${cleantoilet#[y]}" ] ;then
-    make clean && make mrproper
+    make CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE clean && make CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE mrproper
     echo " <--->"
     echo " - Cleaned the rim"
 else
@@ -45,19 +56,7 @@ elif [ "$dev" != "${dev#[4]}" ] ;then
     DEFCONFIG=weta_gts6l_defconfig
 fi
 
-
-VER=$DEVICEE-6.0_TF2
-
-BUILD_CROSS_COMPILE=/home/mentalmuso/kernel/toolchain/4.9/bin/aarch64-linux-android-
-KERNEL_LLVM_BIN=/home/mentalmuso/kernel/toolchain/clang/bin/clang
-CLANG_TRIPLE=aarch64-linux-gnu-
-KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
-KERN=/home/mentalmuso/kernel/android_kernel_samsung_tf2
-TODAY=`date +%Y-%m-%d.%H:%M`
-WETA=$KERN/WETA
-AKOLDZIP=$WETA/weta_anykernel/WETA_Kernel_*
-AKOLDIMG=$WETA/weta_anykernel/zImage
-TWRP=/home/mentalmuso/TWRP
+VER=$DEVICEE-6.0_TF1
 
 export ANDROID_MAJOR_VERSION=q
 export PLATFORM_VERSION=10.0.0
@@ -81,7 +80,7 @@ read twrp
 if [ "$twrp" != "${twrp#[y]}" ] ;then
     git checkout TWRP
 else
-    git checkout master
+    git checkout weta_kernel
 fi
 ###
 
@@ -129,6 +128,7 @@ else
 fi
 
 sed -i 's/CONFIG_SECURITY_SELINUX_NEVER_ENFORCE=y/# CONFIG_SECURITY_SELINUX_NEVER_ENFORCE is not set/g' $DEFCONFIGG
+git checkout weta_kernel
 
 echo " "
 echo "###################################"

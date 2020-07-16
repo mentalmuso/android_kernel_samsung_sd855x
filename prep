@@ -1,0 +1,49 @@
+#!/bin/bash
+
+# script for preparing kernel source
+# mentalmuso
+
+HOME=/home/mentalmuso
+KERN=$HOME/kernel
+CONFIG=arch/arm64/configs/*
+DEFCONFIG=arch/arm64/configs/weta_defconfig
+MAKEFILE=Makefile
+
+# --->
+echo ""
+echo " - adding remote for cherrypicking ..."
+git remote add cherry $KERN/master/.git && git fetch cherry
+
+# --->
+
+# remove avb and verify in dts
+echo ""
+echo " - removing avb/verify from dts ..."
+cd arch/arm64/boot/dts
+find -type f -exec sed -i 's/,avb//g' {} \;
+find -type f -exec sed -i 's/,verify//g' {} \;
+cd .. && cd .. && cd .. && cd ..
+git add . && git commit -m "remove avb/verify from dts"
+
+echo ""
+echo " - cherrypicking daddy ..."
+git cherry-pick 7f54d0a6d5d37010ca0ff6a2617d3eb00b89a819
+git cherry-pick fe7da704526ff6c038763acbca96cbeffb37ae6e
+git cherry-pick c4db3ab9951ddcf7eabb595ef363385a2e9af001
+git cherry-pick 62034bbc06168dbe20d5e301c9b116965713d933
+git cherry-pick 66a9abe80f595e3c140de50c2cc6f7a611835bfa
+git cherry-pick 64ecc6384f0a06272e78ab1d6d27d39238e79cec
+git cherry-pick fdbe7a0aea648c514c01b94fa0e3d6156ce439cc
+git cherry-pick a5c460d11ceb57c7bd61471f75a69805af4c41ee
+git cherry-pick 9a338e1786ed02f9d28d81bcba26b17e4760e3c2
+
+#git checkout -b TWRP
+#git cherry-pick c61b55b673ae1887beb5aef5cca9c0eeed2f02af
+#git checkout weta_kernel
+
+# --->
+
+echo ""
+echo " ---> done"
+
+

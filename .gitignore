@@ -1,0 +1,6 @@
+WETA/
+weta
+prep
+out/
+toolchain/
+arch/arm64/boot/Image

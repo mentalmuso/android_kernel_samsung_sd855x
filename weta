@@ -1,0 +1,139 @@
+#!/bin/bash
+
+### make clean
+echo ""
+echo "Clean the toilet?? "
+echo "y or n "
+read cleantoilet
+if [ "$cleantoilet" != "${cleantoilet#[y]}" ] ;then
+    make clean && make mrproper
+    echo " <--->"
+    echo " - Cleaned the rim"
+else
+    echo ""
+    echo " - Dirty bowl"
+fi
+###
+
+echo ""
+echo "Which device boss? "
+echo "1. N9750 "
+echo "2. N9700 "
+echo "3. T860 "
+echo "4. T865 "
+echo ""
+read dev
+if [ "$dev" != "${dev#[1]}" ] ;then
+    echo "N9750 selected"
+    DEVICEE=N9750
+    DEVICE=d2q
+    DEFCONFIG=weta_d2q_defconfig
+elif [ "$dev" != "${dev#[2]}" ] ;then
+    echo "N9700 selected"
+    DEVICEE=N9700
+    DEVICE=d1q
+    DEFCONFIG=weta_d1q_defconfig
+elif [ "$dev" != "${dev#[3]}" ] ;then
+    echo "T860 selected"
+    DEVICEE=T860
+    DEVICE=gts6lwifi
+    DEFCONFIG=weta_gts6lwifi_defconfig
+elif [ "$dev" != "${dev#[4]}" ] ;then
+    echo "T865 selected"
+    DEVICEE=T865
+    DEVICE=gts6l
+    DEFCONFIG=weta_gts6l_defconfig
+fi
+
+
+VER=$DEVICEE-6.0_TF2
+
+BUILD_CROSS_COMPILE=/home/mentalmuso/kernel/toolchain/4.9/bin/aarch64-linux-android-
+KERNEL_LLVM_BIN=/home/mentalmuso/kernel/toolchain/clang/bin/clang
+CLANG_TRIPLE=aarch64-linux-gnu-
+KERNEL_MAKE_ENV="DTC_EXT=$(pwd)/tools/dtc CONFIG_BUILD_ARM64_DT_OVERLAY=y"
+KERN=/home/mentalmuso/kernel/android_kernel_samsung_tf2
+TODAY=`date +%Y-%m-%d.%H:%M`
+WETA=$KERN/WETA
+AKOLDZIP=$WETA/weta_anykernel/WETA_Kernel_*
+AKOLDIMG=$WETA/weta_anykernel/zImage
+TWRP=/home/mentalmuso/TWRP
+
+export ANDROID_MAJOR_VERSION=q
+export PLATFORM_VERSION=10.0.0
+export ARCH=arm64
+
+if [ ! -d "out" ]; then
+    mkdir out
+fi
+if [ ! -d "$WETA/$DEVICE" ]; then
+    mkdir $WETA/$DEVICE
+fi
+if [ ! -d "$WETA/$DEVICE/twrp_img" ]; then
+    mkdir $WETA/$DEVICE/twrp_img
+fi
+
+### twrp version
+echo ""
+echo "Is this kernel for TWRP? "
+echo "y or n "
+read twrp
+if [ "$twrp" != "${twrp#[y]}" ] ;then
+    git checkout TWRP
+else
+    git checkout master
+fi
+###
+
+### enforcing version
+DEFCONFIGG=$KERN/arch/arm64/configs/$DEFCONFIG
+echo ""
+echo "SELINUX Permissive? "
+echo "y or n "
+read perm
+if [ "$perm" != "${perm#[y]}" ] ;then
+    sed -i 's/# CONFIG_SECURITY_SELINUX_NEVER_ENFORCE is not set/CONFIG_SECURITY_SELINUX_NEVER_ENFORCE=y/g' $DEFCONFIGG
+else
+    sed -i 's/CONFIG_SECURITY_SELINUX_NEVER_ENFORCE=y/# CONFIG_SECURITY_SELINUX_NEVER_ENFORCE is not set/g' $DEFCONFIGG
+fi
+###
+
+make -j17 -C $(pwd) O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE $DEFCONFIG
+time make -j17 -C $(pwd) O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE
+
+cp out/arch/arm64/boot/Image $(pwd)/arch/arm64/boot/Image
+cp $(pwd)/out/arch/arm64/boot/Image-dtb $(pwd)/WETA/$DEVICE/Image-dtb
+if [ "$twrp" != "${twrp#[y]}" ] ;then
+    cp $(pwd)/out/arch/arm64/boot/Image-dtb $(pwd)/WETA/$DEVICE/twrp_img/Image-dtb
+fi
+
+if [ "$twrp" != "${twrp#[y]}" ] ;then
+    echo "no zip made"
+    echo ""
+    echo "Copy Image-dtb to TWRP folder?"
+    echo "y or n "
+    read copy
+    if [ "$copy" != "${copy#[y]}" ] ;then
+        mv $(pwd)/WETA/$DEVICE/twrp_img/Image-dtb $TWRP/device/samsung/$DEVICE/prebuilt/Image-dtb
+    fi
+else
+    cd $WETA/weta_anykernel
+    rm $AKOLDZIP && rm $AKOLDIMG
+    cp $WETA/$DEVICE/Image-dtb $WETA/weta_anykernel/zImage
+    zip -r -7 WETA_Kernel_$VER.zip *
+    if [ "$perm" != "${perm#[y]}" ] ;then
+        mv WETA_Kernel_$VER.zip $WETA/$DEVICE/WETA_Kernel_$VER-permissive.zip
+    else
+        mv WETA_Kernel_$VER.zip $WETA/$DEVICE
+    fi
+fi
+
+sed -i 's/CONFIG_SECURITY_SELINUX_NEVER_ENFORCE=y/# CONFIG_SECURITY_SELINUX_NEVER_ENFORCE is not set/g' $DEFCONFIGG
+
+echo " "
+echo "###################################"
+echo "# Kernel img found in WETA folder #"
+echo "###################################"
+echo " "
+
+

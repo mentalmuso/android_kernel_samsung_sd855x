@@ -129,6 +129,7 @@ fi
 
 sed -i 's/CONFIG_SECURITY_SELINUX_NEVER_ENFORCE=y/# CONFIG_SECURITY_SELINUX_NEVER_ENFORCE is not set/g' $DEFCONFIGG
 git checkout weta_kernel
+cd .. && cd ..
 
 echo " "
 echo "###################################"

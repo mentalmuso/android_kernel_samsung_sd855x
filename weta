@@ -56,7 +56,7 @@ elif [ "$dev" != "${dev#[4]}" ] ;then
     DEFCONFIG=weta_gts6l_defconfig
 fi
 
-VER=$DEVICEE-6.0_TF1
+VER=$DEVICEE-6.1_TF1
 
 export ANDROID_MAJOR_VERSION=q
 export PLATFORM_VERSION=10.0.0

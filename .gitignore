@@ -4,3 +4,4 @@ prep
 out/
 toolchain/
 arch/arm64/boot/Image
+arch/arm64/configs

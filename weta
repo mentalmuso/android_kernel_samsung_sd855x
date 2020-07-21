@@ -88,7 +88,7 @@ fi
 DEFCONFIGG=$KERN/arch/arm64/configs/$DEFCONFIG
 echo ""
 echo "SELINUX Permissive? "
-echo "y or n "
+echo "y or n"
 read perm
 if [ "$perm" != "${perm#[y]}" ] ;then
     sed -i 's/# CONFIG_SECURITY_SELINUX_NEVER_ENFORCE is not set/CONFIG_SECURITY_SELINUX_NEVER_ENFORCE=y/g' $DEFCONFIGG

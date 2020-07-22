@@ -2299,6 +2299,7 @@ int __udp4_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
 
 	sk = __udp4_lib_lookup_skb(skb, uh->source, uh->dest, udptable);
 	if (sk) {
+#ifdef CONFIG_KNOX_NCM
 		// KNOX NPA - START
 		struct nf_conn *ct = NULL;
 		enum ip_conntrack_info ctinfo;
@@ -2353,7 +2354,7 @@ int __udp4_lib_rcv(struct sk_buff *skb, struct udp_table *udptable,
 			}
 		}
 		// KNOX NPA - END
-
+#endif
 		return udp_unicast_rcv_skb(sk, skb, uh);
 	}
 
